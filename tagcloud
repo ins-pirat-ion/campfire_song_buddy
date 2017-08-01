@@ -1,0 +1,39 @@
+#!/bin/perl
+
+use strict;
+use warnings;
+use HTML::TagCloud;
+use List::Util qw( max );
+
+my $filename= 'tags';
+my $fh;
+
+open $fh, '<', $filename or die "Could not open file '$filename': $!";
+
+my %plaintags;
+my %categories;
+
+sub parse_tags {
+  my @tags = @_;
+  shift @tags;
+  foreach my $tag (@tags) {
+    if ($tag =~ /:/) {
+      my ($cat, $cattag) = split(/:/, $tag);
+    } else {
+      $plaintags{$tag}++;
+    };
+  };
+};
+
+while (my $line = <$fh>) {   
+  chomp $line;
+  parse_tags(split (' ', $line));    
+};
+
+my $plaincloud = HTML::TagCloud->new;
+
+foreach my $plaintag (sort keys %plaintags) {
+  $plaincloud->add($plaintag, "filter?$plaintag", $plaintags{$plaintag});
+}
+
+print $plaincloud->html_and_css(max(values(%plaintags)));
